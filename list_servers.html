@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Server Information</title>
+  <style>
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    
+    th, td {
+      padding: 8px;
+      text-align: left;
+      border-bottom: 1px solid #ddd;
+    }
+    
+    th {
+      background-color: #f2f2f2;
+    }
+  </style>
+</head>
+<body>
+  <table id="server-table">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Last Pinged</th>
+        <th>Bot ID</th>
+        <th>No. of Times Pinged</th>
+        <th>IP Pinged With</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+  <script>
+  function formatTimeAgo(timestamp) {
+    var now = new Date();
+    var localOffset = now.getTimezoneOffset() * 60 * 1000; // Convert minutes to milliseconds
+    
+    var adjustedTimestamp = timestamp - localOffset;
+    var secondsAgo = Math.floor((now - adjustedTimestamp) / 1000);
+    
+    var minutes = Math.floor(secondsAgo / 60);
+    var seconds = secondsAgo % 60;
+    
+    return minutes + " minutes, " + seconds + " seconds ago";
+  }
+  
+
+    function fetchServerInformation() {
+      // Fetch server information from the API
+      var xhr = new XMLHttpRequest();
+      xhr.open('GET', 'fetch_servers_status.php', true);
+      xhr.onreadystatechange = function() {
+        if (xhr.readyState === 4 && xhr.status === 200) {
+          // Parse the JSON response
+          var serverInfo = JSON.parse(xhr.responseText);
+          
+          // Get the table body element
+          var tableBody = document.querySelector('#server-table tbody');
+          
+          // Clear existing rows
+          tableBody.innerHTML = '';
+          
+          // Iterate through each server and add a row to the table
+          serverInfo.forEach(function(server) {
+            var row = document.createElement('tr');
+            row.innerHTML = `
+              <td>${server.NAME}</td>
+              <td>${formatTimeAgo(new Date(server.LAST_PINGED))}</td>
+              <td>${server.BOT_ID}</td>
+              <td>${server.NO_OF_TIMES_PINGED}</td>
+              <td>${server.IP_PINGED_WITH}</td>
+              `;
+            tableBody.appendChild(row);
+          });
+        }
+      };
+      xhr.send();
+    }
+    
+    document.addEventListener("DOMContentLoaded", function() {
+      // Fetch server information immediately
+      fetchServerInformation();
+      
+      // Fetch server information every 5 seconds
+      setInterval(fetchServerInformation, 5000);
+    });
+  </script>
+</body>
+</html>
